@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語錄音作業批改小幫手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        
+        .highlight-word {
+            background-color: #fde047 !important;
+            color: #0f172a;
+            padding: 1px 5px;
+            margin: 0 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(250, 204, 21, 0.4);
+            transition: all 0.15s ease-in-out;
+            display: inline-block;
+        }
+        
+        .highlight-word:hover {
+            background-color: #facc15 !important;
+            transform: scale(1.05);
+        }
+
+        .normal-word {
+            cursor: pointer;
+            padding: 1px 3px;
+            margin: 0 1px;
+            border-radius: 3px;
+            transition: all 0.15s ease-in-out;
+            display: inline-block;
+        }
+        
+        .normal-word:hover {
+            background-color: #fef08a;
+            color: #854d0e;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        #pdf-content {
+            background-color: white;
+            padding: 35px 40px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            min-height: 297mm;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            word-break: break-word;
+        }
+
+        .handwriting-style {
+            font-family: 'Kalam', 'Noto Sans TC', cursive, sans-serif;
+            color: #334155;
+            line-height: 1.8;
+        }
+
+        #toastContainer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        .loader-spin {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .is-exporting-pdf .no-pdf {
+            display: none !important;
+        }
+
+        .is-exporting-pdf #pdf-content {
+            box-shadow: none !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+        }
+
+        .is-exporting-pdf #teacherComments {
+            border: none !important;
+            background-color: transparent !important;
+            padding: 0 !important;
+        }
+    
+        .pw, .pw > thead, .pw > tfoot, .pw > tbody, .pw tr, .pw td { display: block; }
+        .pw > thead, .pw > tfoot { display: none; }
+        .syl-sep { color: #2563eb; font-weight: 800; margin: 0 1px; }
+        .mode-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; background: #fff; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 13px; color: #475569; }
+        .mode-btn { padding: 4px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; font-weight: 600; }
+        .mode-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+        #sylPop { position: absolute; z-index: 60; background: #fff; border: 1px solid #94a3b8; border-radius: 12px; padding: 10px 12px; box-shadow: 0 10px 25px rgba(0,0,0,.2); display: none; }
+        #sylPop .row { display: flex; align-items: center; }
+        #sylPop .sl { font: 700 26px/1.2 ui-monospace, Consolas, monospace; color: #0f172a; }
+        #sylPop .gap { width: 14px; height: 34px; border: 0; margin: 0 1px; border-radius: 4px; background: #e2e8f0; cursor: pointer; }
+        #sylPop .gap:hover { background: #93c5fd; }
+        #sylPop .gap.on { background: #2563eb; }
+        #sylPop .acts { margin-top: 8px; display: flex; gap: 8px; font-size: 12px; }
+        #sylPop .acts button { padding: 3px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; cursor: pointer; }
+        @page { size: A4; margin: 0; }
+        @media print {
+            html, body { background: #fff !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            header, #controlPanel, #stickyAudioControl, #toastContainer, .no-pdf { display: none !important; }
+            .container { max-width: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .grid { display: block !important; }
+            #pdf-content { box-shadow: none !important; padding: 0 15mm !important; min-height: 0 !important; max-width: none !important; width: 100% !important; margin: 0 !important; }
+            #transcriptEditor { min-height: 0 !important; }
+            #transcriptEditor > div { break-inside: avoid; page-break-inside: avoid; }
+            .highlight-word, .normal-word { display: inline !important; transform: none !important; transition: none !important; box-shadow: none !important; margin: 0 !important; }
+            .highlight-word { background-color: #fde047 !important; padding: 0 3px !important; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+            .normal-word { padding: 0 !important; background: none !important; }
+            #teacherComments { border: none !important; background: transparent !important; padding: 0 !important; min-height: 0 !important; box-shadow: none !important; outline: none !important; }
+            #pdf-content .border-dashed { break-inside: avoid; page-break-inside: avoid; }
+
+            #mainCol > :not(.pw) { display: none !important; }
+            #sylPop { display: none !important; }
+            .pw { display: table !important; width: 100% !important; }
+            .pw > thead { display: table-header-group !important; }
+            .pw > tbody { display: table-row-group !important; }
+            .pw > tfoot { display: table-footer-group !important; }
+            .pw > thead > tr, .pw > tbody > tr, .pw > tfoot > tr { display: table-row !important; }
+            .pw > thead > tr > td, .pw > tbody > tr > td, .pw > tfoot > tr > td { display: table-cell !important; }
+            .pw-sp { height: 15mm; }
+            .syl-sep { color: #2563eb !important; }
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}.relative{position:relative}.sticky{position:sticky}.top-4{top:1rem}.z-30{z-index:30}.mx-auto{margin-left:auto;margin-right:auto}.my-6{margin-top:1.5rem;margin-bottom:1.5rem}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.ml-1{margin-left:0.25rem}.mr-0\.5{margin-right:0.125rem}.mr-1{margin-right:0.25rem}.mr-2{margin-right:0.5rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-8{margin-top:2rem}.mr-1\.5{margin-right:0.375rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-1\.5{height:0.375rem}.h-14{height:3.5rem}.h-3{height:0.75rem}.min-h-\[140px\]{min-height:140px}.min-h-\[350px\]{min-height:350px}.w-full{width:100%}.w-3{width:0.75rem}.min-w-\[140px\]{min-width:140px}.max-w-6xl{max-width:72rem}.flex-1{flex:1 1 0%}.translate-y-2{--tw-translate-y:0.5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.appearance-none{-webkit-appearance:none;appearance:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-8{gap:2rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded-sm{border-radius:0.125rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-t{border-top-width:1px}.border-t-2{border-top-width:2px}.border-dashed{border-style:dashed}.border-blue-600{--tw-border-opacity:1;border-color:rgb(37 99 235 / var(--tw-border-opacity, 1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183 / var(--tw-border-opacity, 1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-yellow-400{--tw-border-opacity:1;border-color:rgb(250 204 21 / var(--tw-border-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-purple-600{--tw-bg-opacity:1;background-color:rgb(147 51 234 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-slate-50\/50{background-color:rgb(248 250 252 / 0.5)}.bg-yellow-100{--tw-bg-opacity:1;background-color:rgb(254 249 195 / var(--tw-bg-opacity, 1))}.bg-yellow-300{--tw-bg-opacity:1;background-color:rgb(253 224 71 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-3{padding-bottom:0.75rem}.pt-2{padding-top:0.5rem}.pb-4{padding-bottom:1rem}.pt-6{padding-top:1.5rem}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-loose{line-height:2}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-blue-500{--tw-text-opacity:1;color:rgb(59 130 246 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-purple-600{--tw-text-opacity:1;color:rgb(147 51 234 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-yellow-800{--tw-text-opacity:1;color:rgb(133 77 14 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.accent-blue-500{accent-color:#3b82f6}.opacity-0{opacity:0}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-100:hover{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-700:hover{--tw-bg-opacity:1;background-color:rgb(126 34 206 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-50:hover{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.hover\:text-blue-800:hover{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.hover\:text-slate-700:hover{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.hover\:text-blue-600:hover{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.hover\:shadow-lg:hover{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.focus\:border-blue-500:focus{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.focus\:bg-white:focus{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-blue-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(59 130 246 / var(--tw-ring-opacity, 1))}.active\:bg-blue-800:active{--tw-bg-opacity:1;background-color:rgb(30 64 175 / var(--tw-bg-opacity, 1))}@media (min-width: 768px){.md\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 1024px){.lg\:col-span-4{grid-column:span 4 / span 4}.lg\:col-span-8{grid-column:span 8 / span 8}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}}</style></head>
+<body class="text-slate-800 antialiased">
+
+    <div class="container mx-auto p-4 max-w-6xl">
+        
+        <header class="text-center my-6">
+            <h1 class="text-3xl font-extrabold text-blue-800 tracking-tight mb-2 flex items-center justify-center gap-3">
+                <i class="fas fa-microscope text-blue-600"></i>英語錄音作業批改小幫手
+            </h1>
+            <p class="text-slate-600 text-sm md:text-base">AI 智慧發音診斷 ‧ 螢光筆線上互動劃重點 ‧ 評語生成 ‧ 匯出 PDF 報告</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div id="controlPanel" class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4 text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
+                        <span><i class="fas fa-edit text-blue-600 mr-2"></i>1. 作業與逐字稿</span>
+                        <span class="text-xs font-normal bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">設定</span>
+                    </h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">課程名稱 / 頂部小標</label>
+                            <input type="text" id="courseCategory" value="半導體科技英文" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="例如: 半導體科技英文">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">作業標題 (學生姓名)</label>
+                            <input type="text" id="assignmentTitle" value="W3 錄音作業 - 楊崴銘" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="例如: W3 錄音作業 - 楊崴銘">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">繳交指示說明</label>
+                            <input type="text" id="instructionSubtitle" value="請按照課堂指示完成錄音，並繳交檔案於 Google Classroom" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="請輸入指示說明...">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-semibold text-slate-600">標準英文逐字稿 (Transcript)</label>
+                                <button id="loadSampleBtn" type="button" class="text-xs text-blue-600 hover:text-blue-800 font-medium">載入半導體範例</button>
+                            </div>
+                            <textarea id="transcriptText" rows="9" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 leading-relaxed font-mono" placeholder="請在此貼上學生朗讀的英文句子，如:
+1. These unprocessed silicon wafers...
+2. Taiwan's TSMC is a globally..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4 text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
+                        <span><i class="fas fa-microphone-alt text-emerald-600 mr-2"></i>2. 學生錄音與評語生成</span>
+                        <span class="text-xs font-normal bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">核心功能</span>
+                    </h2>
+                    <div class="flex border-b border-slate-200 mb-4 text-xs font-semibold">
+                        <button id="tabDriveLink" type="button" class="py-2 px-3 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex-1 text-center">
+                            <i class="fab fa-google-drive mr-1 text-emerald-600"></i>Classroom 連結
+                        </button>
+                        <button id="tabLocalFile" type="button" class="py-2 px-3 text-slate-500 hover:text-slate-700 focus:outline-none flex-1 text-center">
+                            <i class="fas fa-file-audio mr-1"></i>上傳檔案
+                        </button>
+                    </div>
+                    <div id="driveLinkSection" class="flex flex-col gap-2">
+                        <input type="text" id="driveUrlInput" placeholder="請貼上 Google Classroom / Drive 學生音檔網址..." class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <p class="text-[11px] text-slate-500"><i class="fas fa-info-circle text-blue-500 mr-1"></i>支援貼上 Classroom 作業中的 Google Drive 共用網址。</p>
+                    </div>
+                    <div id="localFileSection" class="flex flex-col gap-2 hidden">
+                        <label for="audioUpload" class="cursor-pointer bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 py-2.5 px-4 rounded-xl text-center transition flex items-center justify-center font-medium text-sm shadow-sm">
+                            <i class="fas fa-cloud-upload-alt mr-2 text-base"></i> 選擇學生音檔 (MP3/WAV/M4A)
+                        </label>
+                        <input type="file" id="audioUpload" accept="audio/*">
+                        <p id="fileNameDisplay" class="text-xs text-slate-500 text-center truncate italic">尚未選擇音檔</p>
+                    </div>
+                    <audio id="audioPlayer" class="hidden" src="https://docs.google.com/uc?export=download&id=1DCt6-na-PCCPuvsktJHneFlBZmRgQh9B"></audio>
+                    <button id="analyzeBtn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 px-4 rounded-xl font-bold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-magic"></i>
+                        <span id="analyzeBtnText">根據劃記單字生成 AI 評語</span>
+                    </button>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-3 text-slate-800 border-b border-slate-100 pb-3"><i class="fas fa-file-pdf text-purple-600 mr-2"></i>3. 匯出批改結果</h2>
+                    <p class="text-xs text-slate-500 mb-4">請在右側檢查螢光筆劃記與評語，確認無誤後點擊下載。</p>
+                    <button id="exportPdfBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-xl font-bold transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> 匯出 PDF 批改報告
+                    </button>
+                </div>
+
+            </div>
+
+            <div id="mainCol" class="lg:col-span-8 relative">
+                <div id="stickyAudioControl" class="sticky top-4 z-30 mb-4 bg-slate-900 text-white p-3 rounded-2xl shadow-xl border border-slate-800 transition-all">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-1.5">
+                            <button id="btnRewind3s" class="p-2 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs transition" title="倒退 3 秒">
+                                <i class="fas fa-undo mr-1"></i>-3s
+                            </button>
+                            <button id="btnPlayPause" class="p-2 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow">
+                                <i id="playIcon" class="fas fa-play"></i>
+                                <span id="playText">播放錄音</span>
+                            </button>
+                            <button id="btnForward3s" class="p-2 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs transition" title="快進 3 秒">
+                                +3s<i class="fas fa-redo ml-1"></i>
+                            </button>
+                        </div>
+                        <div class="flex-1 min-w-[140px] flex items-center gap-2 px-1">
+                            <span id="currentTimeDisplay" class="text-[11px] font-mono text-slate-400">00:00</span>
+                            <input type="range" id="audioSeekBar" value="0" min="0" max="100" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            <span id="durationDisplay" class="text-[11px] font-mono text-slate-400">00:00</span>
+                        </div>
+                        <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-lg">
+                            <span class="text-[10px] text-slate-400 px-1"><i class="fas fa-tachometer-alt mr-0.5"></i>倍速:</span>
+                            <button class="speed-btn px-2 py-0.5 text-xs rounded bg-blue-600 text-white font-medium" data-speed="1">1x</button>
+                            <button class="speed-btn px-2 py-0.5 text-xs rounded hover:bg-slate-700 text-slate-300" data-speed="0.75">0.75x</button>
+                            <button class="speed-btn px-2 py-0.5 text-xs rounded hover:bg-slate-700 text-slate-300" data-speed="0.5">0.5x</button>
+                            <button class="speed-btn px-2 py-0.5 text-xs rounded hover:bg-slate-700 text-slate-300" data-speed="1.25">1.25x</button>
+                        </div>
+                    </div>
+                    <div id="driveEmbedContainer" class="mt-2 pt-2 border-t border-slate-800 text-center">
+                        <p class="text-xs text-amber-400 mb-1"><i class="fas fa-exclamation-triangle mr-1"></i>Google Drive 串流受限，切換至內建播放器：</p>
+                        <iframe id="driveIframe" src="https://drive.google.com/file/d/1DCt6-na-PCCPuvsktJHneFlBZmRgQh9B/preview" class="w-full h-14 rounded bg-white"></iframe>
+                    </div>
+                </div>
+
+                <div class="mode-bar no-pdf">
+                    <span style="font-weight:700">工具：</span>
+                    <button type="button" id="modeHl" class="mode-btn active">🖍 螢光筆</button>
+                    <button type="button" id="modeSyl" class="mode-btn">✂ 畫音節</button>
+                    <span id="modeHint" style="margin-left:6px;color:#64748b">點單字＝劃記／取消</span>
+                </div>
+                <div class="flex justify-between items-center mb-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs text-slate-600">
+                     <div class="flex items-center gap-2">
+                        <span class="inline-block w-3 h-3 bg-yellow-300 rounded-sm border border-yellow-400"></span>
+                        <span class="font-medium"><i class="fas fa-headphones text-blue-500 mr-1"></i>聽音檔時，點擊右側逐字稿任何單字即可劃劃記/取消劃記</span>
+                     </div>
+                     <div class="flex items-center gap-3">
+                        <span id="highlightCountTag" class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold">已劃記 0 字</span>
+                        <button id="clearHighlightBtn" class="text-slate-500 hover:text-red-600 font-medium transition">
+                            <i class="fas fa-eraser mr-1"></i>清除劃記
+                        </button>
+                     </div>
+                </div>
+
+                <table class="pw"><thead><tr><td><div class="pw-sp"></div></td></tr></thead><tfoot><tr><td><div class="pw-sp"></div></td></tr></tfoot><tbody><tr><td><div id="pdf-content" class="rounded-xl relative">
+                    <div class="mb-6 pb-4 border-b border-slate-300">
+                        <p id="displayCategory" class="text-xs font-semibold text-slate-500 tracking-wider mb-1">半導體科技英文</p>
+                        <h1 id="displayTitle" class="text-xl font-bold text-slate-900 mb-2">W3 錄音作業 - 吳佾恩</h1>
+                        <p id="displayInstruction" class="text-xs text-slate-600">請按照課堂指示完成錄音，並繳交檔案於 Google Classroom</p>
+                    </div>
+
+                    <div id="transcriptEditor" class="text-base leading-loose mb-8 text-slate-800 min-h-[350px]"><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">1. </span><span class="normal-word" data-word-index="0">These</span> <span class="highlight-word" data-word-index="1">unprocessed</span> <span class="normal-word" data-word-index="2">silicon</span> <span class="normal-word" data-word-index="3">wafers</span> <span class="normal-word" data-word-index="4">are</span> <span class="normal-word" data-word-index="5">sometimes</span> <span class="normal-word" data-word-index="6">referred</span> <span class="normal-word" data-word-index="7">to</span> <span class="normal-word" data-word-index="8">as</span> "blank <span class="normal-word" data-word-index="9">checks</span>" <span class="normal-word" data-word-index="10">because</span> <span class="normal-word" data-word-index="11">they</span> <span class="normal-word" data-word-index="12">have</span> <span class="normal-word" data-word-index="13">no</span> <span class="highlight-word" data-word-index="14">patterns</span> <span class="normal-word" data-word-index="15">before</span> <span class="normal-word" data-word-index="16">processing</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">2. </span><span class="normal-word" data-word-index="17">Taiwan's</span> <span class="normal-word" data-word-index="18">TSMC</span> <span class="normal-word" data-word-index="19">is</span> <span class="normal-word" data-word-index="20">a</span> <span class="highlight-word" data-word-index="21">globally</span> <span class="highlight-word" data-word-index="22">recognized</span> <span class="highlight-word" data-word-index="23">foundry</span> <span class="normal-word" data-word-index="24">specializing</span> <span class="normal-word" data-word-index="25">in</span> <span class="highlight-word" data-word-index="26">processing</span> <span class="normal-word" data-word-index="27">these</span> <span class="normal-word" data-word-index="28">silicon</span> <span class="highlight-word" data-word-index="29">wafers</span> <span class="normal-word" data-word-index="30">into</span> <span class="normal-word" data-word-index="31">high-performance</span>, <span class="highlight-word" data-word-index="32">marketable</span> <span class="normal-word" data-word-index="33">chips</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">3. </span><span class="normal-word" data-word-index="34">After</span> <span class="normal-word" data-word-index="35">the</span> <span class="highlight-word" data-word-index="36">circuits</span> <span class="normal-word" data-word-index="37">are</span> <span class="highlight-word" data-word-index="38">etched</span> <span class="normal-word" data-word-index="39">onto</span> <span class="normal-word" data-word-index="40">it</span>, <span class="normal-word" data-word-index="41">the</span> <span class="normal-word" data-word-index="42">silicon</span> <span class="normal-word" data-word-index="43">wafer</span> <span class="normal-word" data-word-index="44">can</span> <span class="normal-word" data-word-index="45">be</span> <span class="highlight-word" data-word-index="46">sliced</span> <span class="normal-word" data-word-index="47">into</span> <span class="normal-word" data-word-index="48">dozens</span> <span class="normal-word" data-word-index="49">or</span> <span class="normal-word" data-word-index="50">even</span> <span class="normal-word" data-word-index="51">hundreds</span> <span class="normal-word" data-word-index="52">of</span> <span class="highlight-word" data-word-index="53">individual</span> <span class="highlight-word" data-word-index="54">units</span>, <span class="normal-word" data-word-index="55">known</span> <span class="normal-word" data-word-index="56">as</span> "dies."</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">4. </span><span class="normal-word" data-word-index="57">Once</span> <span class="normal-word" data-word-index="58">these</span> <span class="normal-word" data-word-index="59">dies</span> <span class="normal-word" data-word-index="60">undergo</span> <span class="highlight-word" data-word-index="61">packaging</span> <span class="normal-word" data-word-index="62">and</span> <span class="highlight-word" data-word-index="63">testing</span>, <span class="normal-word" data-word-index="64">they</span> <span class="normal-word" data-word-index="65">are</span> <span class="normal-word" data-word-index="66">transformed</span> <span class="normal-word" data-word-index="67">into</span> <span class="normal-word" data-word-index="68">the</span> <span class="normal-word" data-word-index="69">familiar</span> <span class="normal-word" data-word-index="70">black</span>, <span class="highlight-word" data-word-index="71">rectangular</span> <span class="normal-word" data-word-index="72">chips</span> <span class="normal-word" data-word-index="73">we</span> <span class="normal-word" data-word-index="74">see</span> <span class="normal-word" data-word-index="75">in</span> <span class="normal-word" data-word-index="76">everyday</span> <span class="highlight-word" data-word-index="77">products</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">5. </span><span class="highlight-word" data-word-index="78">Wafer</span> <span class="highlight-word" data-word-index="79">processing</span> <span class="normal-word" data-word-index="80">is</span> <span class="normal-word" data-word-index="81">not</span> <span class="normal-word" data-word-index="82">only</span> <span class="normal-word" data-word-index="83">complex</span> <span class="normal-word" data-word-index="84">but</span> <span class="normal-word" data-word-index="85">also</span> <span class="highlight-word" data-word-index="86">requires</span> <span class="normal-word" data-word-index="87">high</span> <span class="normal-word" data-word-index="88">precision</span> <span class="normal-word" data-word-index="89">and</span> <span class="highlight-word" data-word-index="90">strict</span> <span class="normal-word" data-word-index="91">quality</span> <span class="normal-word" data-word-index="92">control</span>, <span class="normal-word" data-word-index="93">as</span> <span class="normal-word" data-word-index="94">each</span> <span class="normal-word" data-word-index="95">step</span> <span class="normal-word" data-word-index="96">is</span> <span class="highlight-word" data-word-index="97">crucial</span> <span class="normal-word" data-word-index="98">to</span> <span class="normal-word" data-word-index="99">the</span> <span class="normal-word" data-word-index="100">performance</span> <span class="normal-word" data-word-index="101">and</span> <span class="highlight-word" data-word-index="102">quality</span> <span class="normal-word" data-word-index="103">of</span> <span class="normal-word" data-word-index="104">the</span> <span class="highlight-word" data-word-index="105">final</span> <span class="highlight-word" data-word-index="106">chips</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">6. </span><span class="normal-word" data-word-index="107">A</span> <span class="normal-word" data-word-index="108">chip</span>, <span class="normal-word" data-word-index="109">formally</span> <span class="normal-word" data-word-index="110">known</span> <span class="normal-word" data-word-index="111">as</span> <span class="normal-word" data-word-index="112">an</span> <span class="highlight-word" data-word-index="113">integrated</span> <span class="normal-word" data-word-index="114">circuit</span> (IC), <span class="normal-word" data-word-index="115">is</span> <span class="normal-word" data-word-index="116">a</span> <span class="highlight-word" data-word-index="117">semiconductor</span> <span class="highlight-word" data-word-index="118">component</span> <span class="normal-word" data-word-index="119">that</span> <span class="normal-word" data-word-index="120">has</span> <span class="highlight-word" data-word-index="121">been</span> <span class="highlight-word" data-word-index="122">fully</span> <span class="highlight-word" data-word-index="123">processed</span> <span class="normal-word" data-word-index="124">and</span> <span class="normal-word" data-word-index="125">manufactured</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">7. </span><span class="normal-word" data-word-index="126">Inside</span> <span class="normal-word" data-word-index="127">a</span> <span class="normal-word" data-word-index="128">chip</span>, <span class="normal-word" data-word-index="129">there</span> <span class="normal-word" data-word-index="130">are</span> <span class="highlight-word" data-word-index="131">integrated</span> <span class="highlight-word" data-word-index="132">circuits</span> <span class="normal-word" data-word-index="133">and</span> <span class="normal-word" data-word-index="134">billions</span> <span class="normal-word" data-word-index="135">of</span> <span class="normal-word" data-word-index="136">tiny</span> <span class="highlight-word" data-word-index="137">components</span>, <span class="normal-word" data-word-index="138">such</span> <span class="normal-word" data-word-index="139">as</span> <span class="highlight-word" data-word-index="140">transistors</span>, <span class="normal-word" data-word-index="141">resistors</span>, <span class="normal-word" data-word-index="142">and</span> <span class="highlight-word" data-word-index="143">capacitors</span>, <span class="highlight-word" data-word-index="144">which</span> <span class="normal-word" data-word-index="145">allow</span> <span class="highlight-word" data-word-index="146">it</span> <span class="normal-word" data-word-index="147">to</span> <span class="highlight-word" data-word-index="148">perform</span> <span class="highlight-word" data-word-index="149">specific</span> <span class="normal-word" data-word-index="150">functions</span> <span class="normal-word" data-word-index="151">like</span> <span class="highlight-word" data-word-index="152">signal</span> <span class="highlight-word" data-word-index="153">processing</span>, <span class="normal-word" data-word-index="154">logical</span> <span class="highlight-word" data-word-index="155">operations</span>, <span class="normal-word" data-word-index="156">and</span> <span class="normal-word" data-word-index="157">data</span> <span class="highlight-word" data-word-index="158">storage</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">8. </span><span class="normal-word" data-word-index="159">Chips</span> <span class="normal-word" data-word-index="160">are</span> <span class="highlight-word" data-word-index="161">widely</span> <span class="highlight-word" data-word-index="162">used</span> <span class="highlight-word" data-word-index="163">in</span> <span class="highlight-word" data-word-index="164">various</span> <span class="highlight-word" data-word-index="165">electronic</span> <span class="normal-word" data-word-index="166">products</span>, <span class="normal-word" data-word-index="167">including</span> <span class="highlight-word" data-word-index="168">smartphones</span>, <span class="normal-word" data-word-index="169">household</span> <span class="highlight-word" data-word-index="170">appliances</span>, <span class="highlight-word" data-word-index="171">vehicles</span>, <span class="normal-word" data-word-index="172">and</span> <span class="highlight-word" data-word-index="173">medical</span> <span class="highlight-word" data-word-index="174">devices</span>.</div></div>
+
+                    <div class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fas fa-pen-nib text-blue-600"></i>教師總結評語：
+                            </h3>
+                            <div class="flex gap-1 text-xs no-pdf">
+                                <button type="button" class="preset-tag bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2 py-1 rounded text-slate-600 border border-slate-200 transition">+ 劃線字需加強</button>
+                                <button type="button" class="preset-tag bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2 py-1 rounded text-slate-600 border border-slate-200 transition">+ 尾音s容易忽略</button>
+                                <button type="button" class="preset-tag bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2 py-1 rounded text-slate-600 border border-slate-200 transition">+ 需要大量練習</button>
+                            </div>
+                        </div>
+
+                        <div id="teacherComments" contenteditable="true" class="w-full min-h-[140px] p-4 border border-slate-300 rounded-xl bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition handwriting-style text-lg" placeholder="請在此輸入對學生的發音總結與建議...">這是一份為該學生準備的教師評語建議（約 3-4 句）：<br><br>「這次朗讀展現了不錯的節奏感，但請針對劃線單字（如 foundry, circuits, process）加強練習以提升準確度。特別注意字尾的 **-s** 與 **-ed** 讀音（例如 units, etched, sliced），清楚交代尾音能讓表達更精準。針對如 **marketable, individual** 等多音節單字，建議拆解音節並確認重音位置，發音會更自然流暢，繼續加油！」</div>
+                        <p class="text-[11px] text-slate-400 mt-2 text-right no-pdf">※ 此區域可以直接點擊打字修改，匯出時將完整保留</p>
+                    </div>
+
+                </div></td></tr></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const DEFAULT_TRANSCRIPT = `1. These unprocessed silicon wafers are sometimes referred to as "blank checks" because they have no patterns before processing.
+2. Taiwan's TSMC is a globally recognized foundry specializing in processing these silicon wafers into high-performance, marketable chips.
+3. After the circuits are etched onto it, the silicon wafer can be sliced into dozens or even hundreds of individual units, known as "dies."
+4. Once these dies undergo packaging and testing, they are transformed into the familiar black, rectangular chips we see in everyday products.
+5. Wafer processing is not only complex but also requires high precision and strict quality control, as each step is crucial to the performance and quality of the final chips.
+6. A chip, formally known as an integrated circuit (IC), is a semiconductor component that has been fully processed and manufactured.
+7. Inside a chip, there are integrated circuits and billions of tiny components, such as transistors, resistors, and capacitors, which allow it to perform specific functions like signal processing, logical operations, and data storage.
+8. Chips are widely used in various electronic products, including smartphones, household appliances, vehicles, and medical devices.`;
+
+            const courseCategoryInput = document.getElementById('courseCategory');
+            const assignmentTitleInput = document.getElementById('assignmentTitle');
+            const instructionSubtitleInput = document.getElementById('instructionSubtitle');
+            const transcriptInput = document.getElementById('transcriptText');
+            
+            const displayCategory = document.getElementById('displayCategory');
+            const displayTitle = document.getElementById('displayTitle');
+            const displayInstruction = document.getElementById('displayInstruction');
+            const transcriptEditor = document.getElementById('transcriptEditor');
+            const teacherComments = document.getElementById('teacherComments');
+            const highlightCountTag = document.getElementById('highlightCountTag');
+
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const analyzeBtnText = document.getElementById('analyzeBtnText');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            const clearHighlightBtn = document.getElementById('clearHighlightBtn');
+            const loadSampleBtn = document.getElementById('loadSampleBtn');
+
+            const syllables = {};
+            let mode = 'highlight';
+            const sylPop = document.createElement('div');
+            sylPop.id = 'sylPop'; sylPop.className = 'no-pdf';
+            document.body.appendChild(sylPop);
+            function clearSyllables() { Object.keys(syllables).forEach(k => delete syllables[k]); closeSylPop(); }
+            function closeSylPop() { sylPop.style.display = 'none'; sylPop.dataset.idx = ''; }
+            function applyWordDisplay(el) {
+                const raw = el.dataset.raw || el.textContent;
+                el.dataset.raw = raw;
+                const sp = syllables[el.dataset.wordIndex];
+                el.textContent = '';
+                if (!sp || sp.size === 0) { el.textContent = raw; return; }
+                let buf = '';
+                for (let i = 0; i < raw.length; i++) {
+                    buf += raw[i];
+                    if (sp.has(i + 1) && i + 1 < raw.length) {
+                        el.appendChild(document.createTextNode(buf)); buf = '';
+                        const sep = document.createElement('span');
+                        sep.className = 'syl-sep'; sep.textContent = '·';
+                        el.appendChild(sep);
+                    }
+                }
+                if (buf) el.appendChild(document.createTextNode(buf));
+            }
+            function openSylPop(el) {
+                const raw = el.dataset.raw || el.textContent;
+                const idx = el.dataset.wordIndex;
+                const sp = syllables[idx] || (syllables[idx] = new Set());
+                sylPop.innerHTML = '';
+                const row = document.createElement('div'); row.className = 'row';
+                for (let i = 0; i < raw.length; i++) {
+                    const l = document.createElement('span'); l.className = 'sl'; l.textContent = raw[i]; row.appendChild(l);
+                    if (i < raw.length - 1) {
+                        const g = document.createElement('button');
+                        g.type = 'button'; g.className = 'gap' + (sp.has(i + 1) ? ' on' : ''); g.dataset.p = i + 1;
+                        g.title = '在這裡切開／合併';
+                        row.appendChild(g);
+                    }
+                }
+                const acts = document.createElement('div'); acts.className = 'acts';
+                acts.innerHTML = '<span style="color:#64748b">點字母之間的格子切音節</span>';
+                const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = '清除';
+                const done = document.createElement('button'); done.type = 'button'; done.textContent = '完成';
+                clr.onclick = () => { sp.clear(); applyWordDisplay(el); openSylPop(el); };
+                done.onclick = closeSylPop;
+                acts.append(clr, done);
+                sylPop.append(row, acts);
+                row.onclick = (ev) => {
+                    const g = ev.target.closest('.gap'); if (!g) return;
+                    const pos = parseInt(g.dataset.p, 10);
+                    sp.has(pos) ? sp.delete(pos) : sp.add(pos);
+                    g.classList.toggle('on');
+                    applyWordDisplay(el);
+                };
+                const r = el.getBoundingClientRect();
+                sylPop.style.display = 'block';
+                sylPop.style.left = Math.max(8, Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - sylPop.offsetWidth - 8)) + 'px';
+                sylPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+                sylPop.dataset.idx = idx;
+            }
+            function setMode(m) {
+                mode = m; closeSylPop();
+                document.getElementById('modeHl').classList.toggle('active', m === 'highlight');
+                document.getElementById('modeSyl').classList.toggle('active', m === 'syllable');
+                document.getElementById('modeHint').textContent = m === 'highlight' ? '點單字＝劃記／取消' : '點單字＝切音節（例如 sil·i·con）';
+            }
+            document.getElementById('modeHl').addEventListener('click', () => setMode('highlight'));
+            document.getElementById('modeSyl').addEventListener('click', () => setMode('syllable'));
+            document.addEventListener('mousedown', (e) => {
+                if (sylPop.style.display === 'block' && !sylPop.contains(e.target) && !e.target.closest('[data-word-index]')) closeSylPop();
+            });
+
+            const tabLocalFile = document.getElementById('tabLocalFile');
+            const tabDriveLink = document.getElementById('tabDriveLink');
+            const localFileSection = document.getElementById('localFileSection');
+            const driveLinkSection = document.getElementById('driveLinkSection');
+            const audioUpload = document.getElementById('audioUpload');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const driveUrlInput = document.getElementById('driveUrlInput');
+            const audioPlayer = document.getElementById('audioPlayer');
+
+            const btnPlayPause = document.getElementById('btnPlayPause');
+            const playIcon = document.getElementById('playIcon');
+            const playText = document.getElementById('playText');
+            const btnRewind3s = document.getElementById('btnRewind3s');
+            const btnForward3s = document.getElementById('btnForward3s');
+            const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+            const durationDisplay = document.getElementById('durationDisplay');
+            const audioSeekBar = document.getElementById('audioSeekBar');
+            const speedBtns = document.querySelectorAll('.speed-btn');
+            const driveEmbedContainer = document.getElementById('driveEmbedContainer');
+            const driveIframe = document.getElementById('driveIframe');
+
+            let isAnalyzing = false;
+            let highlightedIndices = new Set();
+
+            function showToast(message, type = 'info') {
+                const toastContainer = document.getElementById('toastContainer');
+                if (!toastContainer) return;
+                const toast = document.createElement('div');
+                const bgColors = {
+                    info: 'bg-slate-800 text-white',
+                    success: 'bg-emerald-600 text-white',
+                    warning: 'bg-amber-500 text-white',
+                    error: 'bg-red-600 text-white'
+                };
+                toast.className = `px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all transform translate-y-2 flex items-center gap-2 ${bgColors[type] || bgColors.info}`;
+                toast.innerHTML = `<i class="fas fa-info-circle"></i><span>${message}</span>`;
+                toastContainer.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            courseCategoryInput?.addEventListener('input', () => {
+                displayCategory.textContent = courseCategoryInput.value || '課程名稱';
+            });
+            assignmentTitleInput?.addEventListener('input', () => {
+                displayTitle.textContent = assignmentTitleInput.value || '作業標題';
+            });
+            instructionSubtitleInput?.addEventListener('input', () => {
+                displayInstruction.textContent = instructionSubtitleInput.value || '繳交指示';
+            });
+            transcriptInput?.addEventListener('input', () => {
+                highlightedIndices.clear(); clearSyllables();
+                renderTranscript(transcriptInput.value, highlightedIndices);
+            });
+
+            function renderTranscript(text, highlightedSet = new Set()) {
+                if (!transcriptEditor) return;
+                transcriptEditor.innerHTML = '';
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                let globalWordIndex = 0;
+
+                lines.forEach((line) => {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'mb-3 leading-loose';
+
+                    const match = line.match(/^(\d+\.\s*)(.*)/);
+                    if (match) {
+                        const numSpan = document.createElement('span');
+                        numSpan.className = 'font-bold text-slate-700 mr-1.5';
+                        numSpan.textContent = match[1];
+                        lineDiv.appendChild(numSpan);
+                        line = match[2];
+                    }
+
+                    const tokens = line.split(/(\s+)/);
+                    tokens.forEach(token => {
+                        if (/^\s+$/.test(token)) {
+                            lineDiv.appendChild(document.createTextNode(token));
+                        } else if (token.length > 0) {
+                            const wordSpan = document.createElement('span');
+                            const currentIndex = globalWordIndex++;
+                            const isHighlighted = highlightedSet.has(currentIndex);
+                            wordSpan.className = isHighlighted ? 'highlight-word' : 'normal-word';
+                            wordSpan.dataset.wordIndex = currentIndex;
+                            wordSpan.textContent = token;
+                            wordSpan.dataset.raw = token;
+                            if (syllables[currentIndex] && syllables[currentIndex].size) applyWordDisplay(wordSpan);
+                            lineDiv.appendChild(wordSpan);
+                        }
+                    });
+
+                    transcriptEditor.appendChild(lineDiv);
+                });
+
+                updateHighlightCount();
+            }
+
+            transcriptEditor.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-word-index]');
+                if (!target) return;
+                if (mode === 'syllable') { openSylPop(target); return; }
+                const index = parseInt(target.dataset.wordIndex, 10);
+                if (highlightedIndices.has(index)) {
+                    highlightedIndices.delete(index);
+                    target.className = 'normal-word';
+                } else {
+                    highlightedIndices.add(index);
+                    target.className = 'highlight-word';
+                }
+                updateHighlightCount();
+            });
+
+            function updateHighlightCount() {
+                const count = highlightedIndices.size;
+                highlightCountTag.textContent = `已劃記 ${count} 字`;
+            }
+
+            clearHighlightBtn?.addEventListener('click', () => {
+                highlightedIndices.clear();
+                const words = transcriptEditor.querySelectorAll('.highlight-word');
+                words.forEach(w => w.className = 'normal-word');
+                updateHighlightCount();
+                showToast('已清除所有劃記', 'info');
+            });
+
+            loadSampleBtn?.addEventListener('click', () => {
+                transcriptInput.value = DEFAULT_TRANSCRIPT;
+                highlightedIndices.clear(); clearSyllables();
+                renderTranscript(DEFAULT_TRANSCRIPT, highlightedIndices);
+                showToast('已載入半導體預設逐字稿', 'success');
+            });
+
+            tabDriveLink?.addEventListener('click', () => {
+                tabDriveLink.className = 'py-2 px-3 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex-1 text-center';
+                tabLocalFile.className = 'py-2 px-3 text-slate-500 hover:text-slate-700 focus:outline-none flex-1 text-center';
+                driveLinkSection.classList.remove('hidden');
+                localFileSection.classList.add('hidden');
+            });
+
+            tabLocalFile?.addEventListener('click', () => {
+                tabLocalFile.className = 'py-2 px-3 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex-1 text-center';
+                tabDriveLink.className = 'py-2 px-3 text-slate-500 hover:text-slate-700 focus:outline-none flex-1 text-center';
+                localFileSection.classList.remove('hidden');
+                driveLinkSection.classList.add('hidden');
+            });
+
+            audioUpload?.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    fileNameDisplay.textContent = file.name;
+                    audioPlayer.src = URL.createObjectURL(file);
+                    driveEmbedContainer.classList.add('hidden');
+                    showToast(`已載入音檔: ${file.name}`, 'success');
+                }
+            });
+
+            driveUrlInput?.addEventListener('change', () => {
+                const url = driveUrlInput.value.trim();
+                if (url) {
+                    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+                    if (match && match[1]) {
+                        const fileId = match[1];
+                        audioPlayer.src = `https://docs.google.com/uc?export=download&id=${fileId}`;
+                        driveIframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
+                        driveEmbedContainer.classList.remove('hidden');
+                        showToast('已更新 Google Drive 音訊連結', 'success');
+                    } else {
+                        audioPlayer.src = url;
+                        showToast('已更新音訊連結', 'info');
+                    }
+                }
+            });
+
+            document.querySelectorAll('.preset-tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const tagText = tag.textContent.replace('+', '').trim();
+                    if (teacherComments) {
+                        teacherComments.innerText += ' ' + tagText;
+                    }
+                });
+            });
+
+            exportPdfBtn.addEventListener('click', () => {
+                const title = assignmentTitleInput.value.trim() || '錄音作業批改報告';
+                const oldTitle = document.title;
+                document.title = title;
+                showToast('請在列印視窗的「目的地」選「另存為 PDF」', 'info');
+                setTimeout(() => {
+                    window.print();
+                    document.title = oldTitle;
+                }, 400);
+            });
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return '00:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            btnPlayPause.addEventListener('click', () => {
+                if (!audioPlayer.src) {
+                    showToast('請先選擇音檔或輸入 Google Drive 網址', 'warning');
+                    return;
+                }
+                if (audioPlayer.paused) {
+                    audioPlayer.play().catch(() => driveEmbedContainer.classList.remove('hidden'));
+                } else {
+                    audioPlayer.pause();
+                }
+            });
+
+            audioPlayer.addEventListener('play', () => {
+                playIcon.className = 'fas fa-pause';
+                playText.textContent = '暫停';
+            });
+
+            audioPlayer.addEventListener('pause', () => {
+                playIcon.className = 'fas fa-play';
+                playText.textContent = '播放錄音';
+            });
+
+            audioPlayer.addEventListener('timeupdate', () => {
+                currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+                if (audioPlayer.duration) {
+                    durationDisplay.textContent = formatTime(audioPlayer.duration);
+                    audioSeekBar.value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                }
+            });
+
+            audioSeekBar.addEventListener('input', (e) => {
+                if (audioPlayer.duration) {
+                    audioPlayer.currentTime = (e.target.value / 100) * audioPlayer.duration;
+                }
+            });
+
+            btnRewind3s.addEventListener('click', () => audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 3));
+            btnForward3s.addEventListener('click', () => audioPlayer.currentTime = Math.min(audioPlayer.duration || 0, audioPlayer.currentTime + 3));
+
+            speedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    speedBtns.forEach(b => b.className = 'speed-btn px-2 py-0.5 text-xs rounded hover:bg-slate-700 text-slate-300');
+                    btn.className = 'speed-btn px-2 py-0.5 text-xs rounded bg-blue-600 text-white font-medium';
+                    audioPlayer.playbackRate = parseFloat(btn.dataset.speed);
+                });
+            });
+
+            analyzeBtn.addEventListener('click', async () => {
+                const highlightedElements = transcriptEditor.querySelectorAll('.highlight-word');
+                if (isAnalyzing) return;
+                isAnalyzing = true;
+                analyzeBtnText.innerHTML = `<span class="loader-spin mr-2"></span>正在根據劃記生成 AI 評語...`;
+                analyzeBtn.disabled = true;
+
+                try {
+                    await generateAiTeacherSummary();
+                    if (highlightedElements.length === 0) {
+                        showToast('未劃記任何單字，已生成「發音良好」讚賞評語！', 'info');
+                    } else {
+                        showToast(`已針對您劃記的 ${highlightedElements.length} 個重點單字生成評語！`, 'success');
+                    }
+                } catch (error) {
+                    console.error("生成評語失敗:", error);
+                    showToast('生成過程發生錯誤，請重試。', 'error');
+                } finally {
+                    isAnalyzing = false;
+                    analyzeBtnText.textContent = '根據劃記單字生成 AI 評語';
+                    analyzeBtn.disabled = false;
+                }
+            });
+
+            async function generateAiTeacherSummary() {
+                const highlightedElements = transcriptEditor.querySelectorAll('.highlight-word');
+                const highlightedWords = Array.from(highlightedElements).map(el => (el.dataset.raw || el.textContent).trim());
+
+                if (highlightedWords.length === 0) {
+                    teacherComments.innerText = "學生本次朗讀非常流利順暢，整體發音清晰、節奏掌控良好，未發現明顯需要修正的單字，表現十分優秀，請繼續保持！";
+                    return;
+                }
+
+                const uniqueWords = [...new Set(highlightedWords)].slice(0, 15).join(', ');
+                const userPrompt = `學生在英語朗讀作業中，老師聽完錄音後標記了以下發音需加強或唸錯的單字：[${uniqueWords}]。\n請依據這些劃記單字，用繁體中文寫出 3 至 4 句精簡、具鼓勵性且實用的教師批改總結評語（點出劃線單字需加強發音、注意字尾音如 -s / -ed、多音節重音或斷句等）。`;
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: userPrompt }] }]
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (generatedText) {
+                            teacherComments.innerText = generatedText.trim();
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.log("Gemini API 離線或未設置，使用備用評語產生模式。");
+                }
+
+                const fallbackComments = `本次朗讀整體表現不錯！特別注意劃線標記的單字（如：${uniqueWords}）發音需要再多練習，特別留意字尾音（-s / -ed）與多音節的重音位置。建議多跟讀標準音檔，加油！`;
+                teacherComments.innerText = fallbackComments;
+            }
+
+            transcriptInput.value = DEFAULT_TRANSCRIPT;
+            renderTranscript(DEFAULT_TRANSCRIPT, highlightedIndices);
+        });
+    </script>
+
+</body></html>
