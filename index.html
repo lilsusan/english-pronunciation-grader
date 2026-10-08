@@ -13,12 +13,11 @@
     <style>
         body {
             font-family: 'Noto Sans TC', 'Inter', sans-serif;
-            background-color: #f1f5f9; /* Tailwind slate-100 */
+            background-color: #f1f5f9;
         }
         
-        /* 螢光筆標記樣式 - 完美還原彩色螢光筆感 */
         .highlight-word {
-            background-color: #fde047 !important; /* Tailwind yellow-300 */
+            background-color: #fde047 !important;
             color: #0f172a;
             padding: 1px 5px;
             margin: 0 1px;
@@ -31,11 +30,10 @@
         }
         
         .highlight-word:hover {
-            background-color: #facc15 !important; /* yellow-400 */
+            background-color: #facc15 !important;
             transform: scale(1.05);
         }
 
-        /* 正常單字樣式，滑鼠移過去有提示可點擊 */
         .normal-word {
             cursor: pointer;
             padding: 1px 3px;
@@ -46,21 +44,19 @@
         }
         
         .normal-word:hover {
-            background-color: #fef08a; /* Tailwind yellow-200, hover 效果 */
+            background-color: #fef08a;
             color: #854d0e;
         }
 
-        /* 隱藏預設的檔案上傳按鈕，使用自訂按鈕 */
         input[type="file"] {
             display: none;
         }
 
-        /* PDF 匯出區域的特定樣式，模擬 A4 紙張感 */
         #pdf-content {
             background-color: white;
             padding: 35px 40px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            min-height: 297mm; /* A4 標準高度比例 */
+            min-height: 297mm;
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
@@ -68,14 +64,12 @@
             word-break: break-word;
         }
 
-        /* 教師評語區手寫風格或標誌感 */
         .handwriting-style {
             font-family: 'Kalam', 'Noto Sans TC', cursive, sans-serif;
             color: #334155;
             line-height: 1.8;
         }
 
-        /* Toast 提示浮窗 */
         #toastContainer {
             position: fixed;
             bottom: 24px;
@@ -83,7 +77,6 @@
             z-index: 9999;
         }
 
-        /* 載入轉圈 */
         .loader-spin {
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-top: 3px solid #ffffff;
@@ -99,7 +92,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* 匯出 PDF 時專用的純淨文件樣式：隱藏網頁按鈕與提示，去除輸入框外框 */
         .is-exporting-pdf .no-pdf {
             display: none !important;
         }
@@ -116,12 +108,10 @@
             padding: 0 !important;
         }
     
-        
-        /* 螢幕上讓外框表格不影響版面 */
         .pw, .pw > thead, .pw > tfoot, .pw > tbody, .pw tr, .pw td { display: block; }
         .pw > thead, .pw > tfoot { display: none; }
         .hl-part { background: #fde047; color: #0f172a; font-weight: 600; border-radius: 3px; padding: 0 1px; cursor: pointer; }
-        /* 音節功能 */
+        [contenteditable][placeholder]:empty::before { content: attr(placeholder); color: #94a3b8; }
         .syl-sep { color: #2563eb; font-weight: 800; margin: 0 1px; }
         .mode-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; background: #fff; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 13px; color: #475569; }
         .mode-btn { padding: 4px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; font-weight: 600; }
@@ -134,7 +124,6 @@
         #sylPop .gap.on { background: #2563eb; }
         #sylPop .acts { margin-top: 8px; display: flex; gap: 8px; font-size: 12px; }
         #sylPop .acts button { padding: 3px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; cursor: pointer; }
-        /* ===== 列印 / 另存 PDF 專用樣式：向量文字、A4、不切到句子中間 ===== */
         @page { size: A4; margin: 0; }
         @media print {
             html, body { background: #fff !important; }
@@ -178,10 +167,8 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- 左側：輸入與作業設定控制區 (4 欄) -->
             <div id="controlPanel" class="lg:col-span-4 space-y-6">
                 
-                <!-- 步驟 1: 輸入與名稱 -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <h2 class="text-lg font-bold mb-4 text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
                         <span><i class="fas fa-edit text-blue-600 mr-2"></i>1. 作業與逐字稿</span>
@@ -191,12 +178,12 @@
                     <div class="space-y-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">課程名稱 / 頂部小標</label>
-                            <input type="text" id="courseCategory" value="半導體科技英文" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="例如: 半導體科技英文">
+                            <input type="text" id="courseCategory" value="" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="例如: 國小英語朗讀">
                         </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">作業標題 (學生姓名)</label>
-                            <input type="text" id="assignmentTitle" value="W3 錄音作業 - 楊崴銘" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="例如: W3 錄音作業 - 楊崴銘">
+                            <input type="text" id="assignmentTitle" value="" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="例如: W3 錄音作業 - 學生姓名">
                         </div>
 
                         <div>
@@ -207,23 +194,19 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-xs font-semibold text-slate-600">標準英文逐字稿 (Transcript)</label>
-                                <button id="loadSampleBtn" type="button" class="text-xs text-blue-600 hover:text-blue-800 font-medium">載入半導體範例</button>
+                                <button id="loadSampleBtn" type="button" class="text-xs text-blue-600 hover:text-blue-800 font-medium">載入範例</button>
                             </div>
-                            <textarea id="transcriptText" rows="9" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 leading-relaxed font-mono" placeholder="請在此貼上學生朗讀的英文句子，如:
-1. These unprocessed silicon wafers...
-2. Taiwan's TSMC is a globally..."></textarea>
+                            <textarea id="transcriptText" rows="9" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 leading-relaxed font-mono" placeholder="請在此貼上英文逐字稿，每句一行，例如： 1. The little bird sang a happy song. 2. She walked to the park."></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步驟 2: 音訊與 AI 分析 -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <h2 class="text-lg font-bold mb-4 text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
                         <span><i class="fas fa-microphone-alt text-emerald-600 mr-2"></i>2. 學生錄音與評語生成</span>
                         <span class="text-xs font-normal bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">核心功能</span>
                     </h2>
                     
-                    <!-- 頁籤切換 (預設 Classroom 連結) -->
                     <div class="flex border-b border-slate-200 mb-4 text-xs font-semibold">
                         <button id="tabDriveLink" type="button" class="py-2 px-3 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex-1 text-center">
                             <i class="fab fa-google-drive mr-1 text-emerald-600"></i>Classroom 連結
@@ -233,13 +216,11 @@
                         </button>
                     </div>
 
-                    <!-- Google Classroom / Drive 連結模式 (預設顯示) -->
                     <div id="driveLinkSection" class="flex flex-col gap-2">
                         <input type="text" id="driveUrlInput" placeholder="請貼上 Google Classroom / Drive 學生音檔網址..." class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <p class="text-[11px] text-slate-500"><i class="fas fa-info-circle text-blue-500 mr-1"></i>支援貼上 Classroom 作業中的 Google Drive 共用網址。</p>
                     </div>
 
-                    <!-- 本地檔案上傳模式 -->
                     <div id="localFileSection" class="flex flex-col gap-2 hidden">
                         <label for="audioUpload" class="cursor-pointer bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 py-2.5 px-4 rounded-xl text-center transition flex items-center justify-center font-medium text-sm shadow-sm">
                             <i class="fas fa-cloud-upload-alt mr-2 text-base"></i> 選擇學生音檔 (MP3/WAV/M4A)
@@ -248,17 +229,14 @@
                         <p id="fileNameDisplay" class="text-xs text-slate-500 text-center truncate italic">尚未選擇音檔</p>
                     </div>
 
-                    <!-- 錄音檔原生隱藏 Audio Tag -->
-                    <audio id="audioPlayer" class="hidden" src="https://docs.google.com/uc?export=download&id=1DCt6-na-PCCPuvsktJHneFlBZmRgQh9B"></audio>
+                    <audio id="audioPlayer" class="hidden"></audio>
 
-                    <!-- 按鈕：根據劃記生成 AI 評語 -->
                     <button id="analyzeBtn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 px-4 rounded-xl font-bold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                         <i class="fas fa-magic"></i>
                         <span id="analyzeBtnText">根據劃記生成評語</span>
                     </button>
                 </div>
 
-                <!-- 步驟 3: 匯出 -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <h2 class="text-lg font-bold mb-3 text-slate-800 border-b border-slate-100 pb-3"><i class="fas fa-file-pdf text-purple-600 mr-2"></i>3. 匯出批改結果</h2>
                     <p class="text-xs text-slate-500 mb-4">請在右側檢查螢光筆劃記與評語，確認無誤後點擊下載。</p>
@@ -269,14 +247,10 @@
 
             </div>
 
-            <!-- 右側：編輯與預覽區 (8 欄，這部分會被截圖/匯出成 PDF) -->
             <div id="mainCol" class="lg:col-span-8 relative">
                 
-                <!-- 專用釘選型語音播放控制列 (上方浮動) -->
                 <div id="stickyAudioControl" class="sticky top-4 z-30 mb-4 bg-slate-900 text-white p-3 rounded-2xl shadow-xl border border-slate-800 transition-all">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        
-                        <!-- 播放 / 快退 / 快進鍵 -->
                         <div class="flex items-center gap-1.5">
                             <button id="btnRewind3s" class="p-2 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs transition" title="倒退 3 秒">
                                 <i class="fas fa-undo mr-1"></i>-3s
@@ -290,14 +264,12 @@
                             </button>
                         </div>
 
-                        <!-- 進度條與時間 -->
                         <div class="flex-1 min-w-[140px] flex items-center gap-2 px-1">
                             <span id="currentTimeDisplay" class="text-[11px] font-mono text-slate-400">00:00</span>
                             <input type="range" id="audioSeekBar" value="0" min="0" max="100" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                             <span id="durationDisplay" class="text-[11px] font-mono text-slate-400">00:00</span>
                         </div>
 
-                        <!-- 倍速按鈕 (發音批改必備) -->
                         <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-lg">
                             <span class="text-[10px] text-slate-400 px-1"><i class="fas fa-tachometer-alt mr-0.5"></i>倍速:</span>
                             <button class="speed-btn px-2 py-0.5 text-xs rounded bg-blue-600 text-white font-medium" data-speed="1">1x</button>
@@ -307,10 +279,9 @@
                         </div>
                     </div>
 
-                    <!-- Google Drive 內嵌備用檢視器 -->
-                    <div id="driveEmbedContainer" class="mt-2 pt-2 border-t border-slate-800 text-center">
+                    <div id="driveEmbedContainer" class="hidden mt-2 pt-2 border-t border-slate-800 text-center">
                         <p class="text-xs text-amber-400 mb-1"><i class="fas fa-exclamation-triangle mr-1"></i>Google Drive 串流受限，切換至內建播放器：</p>
-                        <iframe id="driveIframe" src="https://drive.google.com/file/d/1DCt6-na-PCCPuvsktJHneFlBZmRgQh9B/preview" class="w-full h-14 rounded bg-white"></iframe>
+                        <iframe id="driveIframe" class="w-full h-14 rounded bg-white"></iframe>
                     </div>
                 </div>
 
@@ -319,8 +290,9 @@
                     <button type="button" id="modeHl" class="mode-btn active">🖍 螢光筆</button>
                     <button type="button" id="modeSyl" class="mode-btn">✂ 畫音節</button>
                     <span id="modeHint" style="margin-left:6px;color:#64748b">點單字＝整個字劃記；拖曳選取字母＝只劃記一小段；點已劃的小段＝取消</span>
+                    <button type="button" id="clearAllBtn" class="mode-btn" style="margin-left:auto">🗑 清空本份作業資料</button>
+                    <span style="font-size:11px;color:#94a3b8">v1008</span>
                 </div>
-                <!-- 功能輔助工具列 -->
                 <div class="flex justify-between items-center mb-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs text-slate-600">
                      <div class="flex items-center gap-2">
                         <span class="inline-block w-3 h-3 bg-yellow-300 rounded-sm border border-yellow-400"></span>
@@ -334,20 +306,15 @@
                      </div>
                 </div>
 
-                <!-- PDF 預覽與輸出目標區域 (#pdf-content) -->
                 <table class="pw"><thead><tr><td><div class="pw-sp"></div></td></tr></thead><tfoot><tr><td><div class="pw-sp"></div></td></tr></tfoot><tbody><tr><td><div id="pdf-content" class="rounded-xl relative">
-                    
-                    <!-- 文件頂部 Header (比對範例圖片) -->
                     <div class="mb-6 pb-4 border-b border-slate-300">
-                        <p id="displayCategory" class="text-xs font-semibold text-slate-500 tracking-wider mb-1">半導體科技英文</p>
-                        <h1 id="displayTitle" class="text-xl font-bold text-slate-900 mb-2">W3 錄音作業 - 吳佾恩</h1>
+                        <p id="displayCategory" class="text-xs font-semibold text-slate-500 tracking-wider mb-1">課程名稱</p>
+                        <h1 id="displayTitle" class="text-xl font-bold text-slate-900 mb-2">作業標題</h1>
                         <p id="displayInstruction" class="text-xs text-slate-600">請按照課堂指示完成錄音，並繳交檔案於 Google Classroom</p>
                     </div>
 
-                    <!-- 內文與螢光筆劃記編輯區 -->
-                    <div id="transcriptEditor" class="text-base leading-loose mb-8 text-slate-800 min-h-[350px]"><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">1. </span><span class="normal-word" data-word-index="0">These</span> <span class="highlight-word" data-word-index="1">unprocessed</span> <span class="normal-word" data-word-index="2">silicon</span> <span class="normal-word" data-word-index="3">wafers</span> <span class="normal-word" data-word-index="4">are</span> <span class="normal-word" data-word-index="5">sometimes</span> <span class="normal-word" data-word-index="6">referred</span> <span class="normal-word" data-word-index="7">to</span> <span class="normal-word" data-word-index="8">as</span> "blank <span class="normal-word" data-word-index="9">checks</span>" <span class="normal-word" data-word-index="10">because</span> <span class="normal-word" data-word-index="11">they</span> <span class="normal-word" data-word-index="12">have</span> <span class="normal-word" data-word-index="13">no</span> <span class="highlight-word" data-word-index="14">patterns</span> <span class="normal-word" data-word-index="15">before</span> <span class="normal-word" data-word-index="16">processing</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">2. </span><span class="normal-word" data-word-index="17">Taiwan's</span> <span class="normal-word" data-word-index="18">TSMC</span> <span class="normal-word" data-word-index="19">is</span> <span class="normal-word" data-word-index="20">a</span> <span class="highlight-word" data-word-index="21">globally</span> <span class="highlight-word" data-word-index="22">recognized</span> <span class="highlight-word" data-word-index="23">foundry</span> <span class="normal-word" data-word-index="24">specializing</span> <span class="normal-word" data-word-index="25">in</span> <span class="highlight-word" data-word-index="26">processing</span> <span class="normal-word" data-word-index="27">these</span> <span class="normal-word" data-word-index="28">silicon</span> <span class="highlight-word" data-word-index="29">wafers</span> <span class="normal-word" data-word-index="30">into</span> <span class="normal-word" data-word-index="31">high-performance</span>, <span class="highlight-word" data-word-index="32">marketable</span> <span class="normal-word" data-word-index="33">chips</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">3. </span><span class="normal-word" data-word-index="34">After</span> <span class="normal-word" data-word-index="35">the</span> <span class="highlight-word" data-word-index="36">circuits</span> <span class="normal-word" data-word-index="37">are</span> <span class="highlight-word" data-word-index="38">etched</span> <span class="normal-word" data-word-index="39">onto</span> <span class="normal-word" data-word-index="40">it</span>, <span class="normal-word" data-word-index="41">the</span> <span class="normal-word" data-word-index="42">silicon</span> <span class="normal-word" data-word-index="43">wafer</span> <span class="normal-word" data-word-index="44">can</span> <span class="normal-word" data-word-index="45">be</span> <span class="highlight-word" data-word-index="46">sliced</span> <span class="normal-word" data-word-index="47">into</span> <span class="normal-word" data-word-index="48">dozens</span> <span class="normal-word" data-word-index="49">or</span> <span class="normal-word" data-word-index="50">even</span> <span class="normal-word" data-word-index="51">hundreds</span> <span class="normal-word" data-word-index="52">of</span> <span class="highlight-word" data-word-index="53">individual</span> <span class="highlight-word" data-word-index="54">units</span>, <span class="normal-word" data-word-index="55">known</span> <span class="normal-word" data-word-index="56">as</span> "dies."</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">4. </span><span class="normal-word" data-word-index="57">Once</span> <span class="normal-word" data-word-index="58">these</span> <span class="normal-word" data-word-index="59">dies</span> <span class="normal-word" data-word-index="60">undergo</span> <span class="highlight-word" data-word-index="61">packaging</span> <span class="normal-word" data-word-index="62">and</span> <span class="highlight-word" data-word-index="63">testing</span>, <span class="normal-word" data-word-index="64">they</span> <span class="normal-word" data-word-index="65">are</span> <span class="normal-word" data-word-index="66">transformed</span> <span class="normal-word" data-word-index="67">into</span> <span class="normal-word" data-word-index="68">the</span> <span class="normal-word" data-word-index="69">familiar</span> <span class="normal-word" data-word-index="70">black</span>, <span class="highlight-word" data-word-index="71">rectangular</span> <span class="normal-word" data-word-index="72">chips</span> <span class="normal-word" data-word-index="73">we</span> <span class="normal-word" data-word-index="74">see</span> <span class="normal-word" data-word-index="75">in</span> <span class="normal-word" data-word-index="76">everyday</span> <span class="highlight-word" data-word-index="77">products</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">5. </span><span class="highlight-word" data-word-index="78">Wafer</span> <span class="highlight-word" data-word-index="79">processing</span> <span class="normal-word" data-word-index="80">is</span> <span class="normal-word" data-word-index="81">not</span> <span class="normal-word" data-word-index="82">only</span> <span class="normal-word" data-word-index="83">complex</span> <span class="normal-word" data-word-index="84">but</span> <span class="normal-word" data-word-index="85">also</span> <span class="highlight-word" data-word-index="86">requires</span> <span class="normal-word" data-word-index="87">high</span> <span class="normal-word" data-word-index="88">precision</span> <span class="normal-word" data-word-index="89">and</span> <span class="highlight-word" data-word-index="90">strict</span> <span class="normal-word" data-word-index="91">quality</span> <span class="normal-word" data-word-index="92">control</span>, <span class="normal-word" data-word-index="93">as</span> <span class="normal-word" data-word-index="94">each</span> <span class="normal-word" data-word-index="95">step</span> <span class="normal-word" data-word-index="96">is</span> <span class="highlight-word" data-word-index="97">crucial</span> <span class="normal-word" data-word-index="98">to</span> <span class="normal-word" data-word-index="99">the</span> <span class="normal-word" data-word-index="100">performance</span> <span class="normal-word" data-word-index="101">and</span> <span class="highlight-word" data-word-index="102">quality</span> <span class="normal-word" data-word-index="103">of</span> <span class="normal-word" data-word-index="104">the</span> <span class="highlight-word" data-word-index="105">final</span> <span class="highlight-word" data-word-index="106">chips</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">6. </span><span class="normal-word" data-word-index="107">A</span> <span class="normal-word" data-word-index="108">chip</span>, <span class="normal-word" data-word-index="109">formally</span> <span class="normal-word" data-word-index="110">known</span> <span class="normal-word" data-word-index="111">as</span> <span class="normal-word" data-word-index="112">an</span> <span class="highlight-word" data-word-index="113">integrated</span> <span class="normal-word" data-word-index="114">circuit</span> (IC), <span class="normal-word" data-word-index="115">is</span> <span class="normal-word" data-word-index="116">a</span> <span class="highlight-word" data-word-index="117">semiconductor</span> <span class="highlight-word" data-word-index="118">component</span> <span class="normal-word" data-word-index="119">that</span> <span class="normal-word" data-word-index="120">has</span> <span class="highlight-word" data-word-index="121">been</span> <span class="highlight-word" data-word-index="122">fully</span> <span class="highlight-word" data-word-index="123">processed</span> <span class="normal-word" data-word-index="124">and</span> <span class="normal-word" data-word-index="125">manufactured</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">7. </span><span class="normal-word" data-word-index="126">Inside</span> <span class="normal-word" data-word-index="127">a</span> <span class="normal-word" data-word-index="128">chip</span>, <span class="normal-word" data-word-index="129">there</span> <span class="normal-word" data-word-index="130">are</span> <span class="highlight-word" data-word-index="131">integrated</span> <span class="highlight-word" data-word-index="132">circuits</span> <span class="normal-word" data-word-index="133">and</span> <span class="normal-word" data-word-index="134">billions</span> <span class="normal-word" data-word-index="135">of</span> <span class="normal-word" data-word-index="136">tiny</span> <span class="highlight-word" data-word-index="137">components</span>, <span class="normal-word" data-word-index="138">such</span> <span class="normal-word" data-word-index="139">as</span> <span class="highlight-word" data-word-index="140">transistors</span>, <span class="normal-word" data-word-index="141">resistors</span>, <span class="normal-word" data-word-index="142">and</span> <span class="highlight-word" data-word-index="143">capacitors</span>, <span class="highlight-word" data-word-index="144">which</span> <span class="normal-word" data-word-index="145">allow</span> <span class="highlight-word" data-word-index="146">it</span> <span class="normal-word" data-word-index="147">to</span> <span class="highlight-word" data-word-index="148">perform</span> <span class="highlight-word" data-word-index="149">specific</span> <span class="normal-word" data-word-index="150">functions</span> <span class="normal-word" data-word-index="151">like</span> <span class="highlight-word" data-word-index="152">signal</span> <span class="highlight-word" data-word-index="153">processing</span>, <span class="normal-word" data-word-index="154">logical</span> <span class="highlight-word" data-word-index="155">operations</span>, <span class="normal-word" data-word-index="156">and</span> <span class="normal-word" data-word-index="157">data</span> <span class="highlight-word" data-word-index="158">storage</span>.</div><div class="mb-3 leading-loose"><span class="font-bold text-slate-700 mr-1.5">8. </span><span class="normal-word" data-word-index="159">Chips</span> <span class="normal-word" data-word-index="160">are</span> <span class="highlight-word" data-word-index="161">widely</span> <span class="highlight-word" data-word-index="162">used</span> <span class="highlight-word" data-word-index="163">in</span> <span class="highlight-word" data-word-index="164">various</span> <span class="highlight-word" data-word-index="165">electronic</span> <span class="normal-word" data-word-index="166">products</span>, <span class="normal-word" data-word-index="167">including</span> <span class="highlight-word" data-word-index="168">smartphones</span>, <span class="normal-word" data-word-index="169">household</span> <span class="highlight-word" data-word-index="170">appliances</span>, <span class="highlight-word" data-word-index="171">vehicles</span>, <span class="normal-word" data-word-index="172">and</span> <span class="highlight-word" data-word-index="173">medical</span> <span class="highlight-word" data-word-index="174">devices</span>.</div></div>
+                    <div id="transcriptEditor" class="text-base leading-loose mb-8 text-slate-800 min-h-[350px]"></div>
 
-                    <!-- 總結評語區 (參考照片下方手寫評語樣式) -->
                     <div class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
                         <div class="flex justify-between items-center mb-3">
                             <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -360,8 +327,7 @@
                             </div>
                         </div>
 
-                        <!-- 可直接點擊編輯的內容區域 -->
-                        <div id="teacherComments" contenteditable="true" class="w-full min-h-[140px] p-4 border border-slate-300 rounded-xl bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition handwriting-style text-lg" placeholder="請在此輸入對學生的發音總結與建議...">這是一份為該學生準備的教師評語建議（約 3-4 句）：<br><br>「這次朗讀展現了不錯的節奏感，但請針對劃線單字（如 foundry, circuits, process）加強練習以提升準確度。特別注意字尾的 **-s** 與 **-ed** 讀音（例如 units, etched, sliced），清楚交代尾音能讓表達更精準。針對如 **marketable, individual** 等多音節單字，建議拆解音節並確認重音位置，發音會更自然流暢，繼續加油！」</div>
+                        <div id="teacherComments" contenteditable="true" class="w-full min-h-[140px] p-4 border border-slate-300 rounded-xl bg-slate-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition handwriting-style text-lg" placeholder="請在此輸入對學生的發音總結與建議..."></div>
                         <p class="text-[11px] text-slate-400 mt-2 text-right no-pdf">※ 此區域可以直接點擊打字修改，匯出時將完整保留</p>
                     </div>
 
@@ -370,59 +336,48 @@
         </div>
     </div>
 
-    <!-- Toast 浮動提示 -->
     <div id="toastContainer"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // --- 預設半導體英文文本 (還原範例圖片的 8 個句型) ---
-            const DEFAULT_TRANSCRIPT = `1. These unprocessed silicon wafers are sometimes referred to as "blank checks" because they have no patterns before processing.
-2. Taiwan's TSMC is a globally recognized foundry specializing in processing these silicon wafers into high-performance, marketable chips.
-3. After the circuits are etched onto it, the silicon wafer can be sliced into dozens or even hundreds of individual units, known as "dies."
-4. Once these dies undergo packaging and testing, they are transformed into the familiar black, rectangular chips we see in everyday products.
-5. Wafer processing is not only complex but also requires high precision and strict quality control, as each step is crucial to the performance and quality of the final chips.
-6. A chip, formally known as an integrated circuit (IC), is a semiconductor component that has been fully processed and manufactured.
-7. Inside a chip, there are integrated circuits and billions of tiny components, such as transistors, resistors, and capacitors, which allow it to perform specific functions like signal processing, logical operations, and data storage.
-8. Chips are widely used in various electronic products, including smartphones, household appliances, vehicles, and medical devices.`;
+            const DEFAULT_TRANSCRIPT = `1. The little bird sat on the green branch and sang a happy song.
+2. Thank you for helping me with my homework this morning.
+3. She walked to the park and played with three friends.`;
 
-            // --- 取得 DOM 元素 ---
             const courseCategoryInput = document.getElementById('courseCategory');
             const assignmentTitleInput = document.getElementById('assignmentTitle');
             const instructionSubtitleInput = document.getElementById('instructionSubtitle');
             const transcriptInput = document.getElementById('transcriptText');
-            
             const displayCategory = document.getElementById('displayCategory');
             const displayTitle = document.getElementById('displayTitle');
             const displayInstruction = document.getElementById('displayInstruction');
             const transcriptEditor = document.getElementById('transcriptEditor');
             const teacherComments = document.getElementById('teacherComments');
             const highlightCountTag = document.getElementById('highlightCountTag');
-
             const analyzeBtn = document.getElementById('analyzeBtn');
             const analyzeBtnText = document.getElementById('analyzeBtnText');
-            const aiSummaryBtn = document.getElementById('aiSummaryBtn');
             const exportPdfBtn = document.getElementById('exportPdfBtn');
             const clearHighlightBtn = document.getElementById('clearHighlightBtn');
             const loadSampleBtn = document.getElementById('loadSampleBtn');
 
-            // --- 畫音節功能 ---
-            const syllables = {};   // wordIndex -> Set(切點位置，以該字原始字元數計)
+            const syllables = {};
             let mode = 'highlight';
             const sylPop = document.createElement('div');
             sylPop.id = 'sylPop'; sylPop.className = 'no-pdf';
             document.body.appendChild(sylPop);
+            const partials = {};
+            let suppressClick = false;
+
             function clearSyllables() { Object.keys(syllables).forEach(k => delete syllables[k]); clearPartials(); closeSylPop(); }
             function closeSylPop() { sylPop.style.display = 'none'; sylPop.dataset.idx = ''; }
-            const partials = {};   // wordIndex -> [[起,迄), ...] 字母範圍（局部螢光筆）
-            let suppressClick = false;
             function clearPartials() { Object.keys(partials).forEach(k => delete partials[k]); }
+
             function applyWordDisplay(el) {
                 const raw = el.dataset.raw || el.textContent;
                 el.dataset.raw = raw;
                 const idx = el.dataset.wordIndex;
                 const sp = syllables[idx];
-                const pr = el.classList.contains('highlight-word') ? null : partials[idx];
+                const pr = partials[idx];
                 el.textContent = '';
                 if ((!sp || sp.size === 0) && (!pr || pr.length === 0)) { el.textContent = raw; return; }
                 const rangeOf = i => pr ? pr.findIndex(r => i >= r[0] && i < r[1]) : -1;
@@ -448,6 +403,7 @@
                 }
                 flush();
             }
+
             function openSylPop(el) {
                 const raw = el.dataset.raw || el.textContent;
                 const idx = el.dataset.wordIndex;
@@ -484,19 +440,20 @@
                 sylPop.style.top = (r.bottom + window.scrollY + 6) + 'px';
                 sylPop.dataset.idx = idx;
             }
+
             function setMode(m) {
                 mode = m; closeSylPop();
                 document.getElementById('modeHl').classList.toggle('active', m === 'highlight');
                 document.getElementById('modeSyl').classList.toggle('active', m === 'syllable');
                 document.getElementById('modeHint').textContent = m === 'highlight' ? '點單字＝整個字劃記；拖曳選取字母＝只劃記一小段；點已劃的小段＝取消' : '點單字＝切音節（例如 sil·i·con）';
             }
+
             document.getElementById('modeHl').addEventListener('click', () => setMode('highlight'));
             document.getElementById('modeSyl').addEventListener('click', () => setMode('syllable'));
             document.addEventListener('mousedown', (e) => {
                 if (sylPop.style.display === 'block' && !sylPop.contains(e.target) && !e.target.closest('[data-word-index]')) closeSylPop();
             });
 
-            // 頁籤與音訊
             const tabLocalFile = document.getElementById('tabLocalFile');
             const tabDriveLink = document.getElementById('tabDriveLink');
             const localFileSection = document.getElementById('localFileSection');
@@ -505,8 +462,6 @@
             const fileNameDisplay = document.getElementById('fileNameDisplay');
             const driveUrlInput = document.getElementById('driveUrlInput');
             const audioPlayer = document.getElementById('audioPlayer');
-
-            // 播放器 UI
             const btnPlayPause = document.getElementById('btnPlayPause');
             const playIcon = document.getElementById('playIcon');
             const playText = document.getElementById('playText');
@@ -519,11 +474,9 @@
             const driveEmbedContainer = document.getElementById('driveEmbedContainer');
             const driveIframe = document.getElementById('driveIframe');
 
-            // 狀態變數
             let isAnalyzing = false;
             let highlightedIndices = new Set();
 
-            // --- Toast 提示功能 ---
             function showToast(message, type = 'info') {
                 const toastContainer = document.getElementById('toastContainer');
                 if (!toastContainer) return;
@@ -543,33 +496,31 @@
                 }, 3000);
             }
 
-            // --- 輸入與畫面動態同步 ---
-            courseCategoryInput?.addEventListener('input', () => {
+            courseCategoryInput.addEventListener('input', () => {
                 displayCategory.textContent = courseCategoryInput.value || '課程名稱';
             });
-            assignmentTitleInput?.addEventListener('input', () => {
+            assignmentTitleInput.addEventListener('input', () => {
                 displayTitle.textContent = assignmentTitleInput.value || '作業標題';
             });
-            instructionSubtitleInput?.addEventListener('input', () => {
+            instructionSubtitleInput.addEventListener('input', () => {
                 displayInstruction.textContent = instructionSubtitleInput.value || '繳交指示';
             });
-            transcriptInput?.addEventListener('input', () => {
+            transcriptInput.addEventListener('input', () => {
                 highlightedIndices.clear(); clearSyllables();
                 renderTranscript(transcriptInput.value, highlightedIndices);
             });
 
-            // --- 劃記與逐字稿渲染邏輯 ---
             function renderTranscript(text, highlightedSet = new Set()) {
-                if (!transcriptEditor) return;
                 transcriptEditor.innerHTML = '';
-                
                 const lines = text.split('\n').filter(line => line.trim() !== '');
+                if (lines.length === 0) {
+                    transcriptEditor.innerHTML = '<div class="no-pdf" style="color:#94a3b8;padding:24px 0">請先在左側貼上逐字稿，這裡就會出現可劃記的文字。</div>';
+                    return;
+                }
                 let globalWordIndex = 0;
-
                 lines.forEach((line) => {
                     const lineDiv = document.createElement('div');
                     lineDiv.className = 'mb-3 leading-loose';
-
                     const match = line.match(/^(\d+\.\s*)(.*)/);
                     if (match) {
                         const numSpan = document.createElement('span');
@@ -578,7 +529,6 @@
                         lineDiv.appendChild(numSpan);
                         line = match[2];
                     }
-
                     const tokens = line.split(/(\s+)/);
                     tokens.forEach(token => {
                         if (/^\s+$/.test(token)) {
@@ -587,24 +537,19 @@
                             const wordSpan = document.createElement('span');
                             const currentIndex = globalWordIndex++;
                             const isHighlighted = highlightedSet.has(currentIndex);
-                            
                             wordSpan.className = isHighlighted ? 'highlight-word' : 'normal-word';
                             wordSpan.dataset.wordIndex = currentIndex;
                             wordSpan.textContent = token;
                             wordSpan.dataset.raw = token;
                             if ((syllables[currentIndex] && syllables[currentIndex].size) || (partials[currentIndex] && partials[currentIndex].length)) applyWordDisplay(wordSpan);
-                            
                             lineDiv.appendChild(wordSpan);
                         }
                     });
-
                     transcriptEditor.appendChild(lineDiv);
                 });
-
                 updateHighlightCount();
             }
 
-            // 點擊單字切換劃記狀態
             transcriptEditor.addEventListener('click', (e) => {
                 if (suppressClick) { suppressClick = false; return; }
                 const target = e.target.closest('[data-word-index]');
@@ -627,7 +572,6 @@
                 updateHighlightCount();
             });
 
-            // 拖曳選取字母 -> 只劃記該字的一小段
             transcriptEditor.addEventListener('mouseup', () => {
                 if (mode !== 'highlight') return;
                 const sel = window.getSelection();
@@ -635,7 +579,7 @@
                 const rg = sel.getRangeAt(0);
                 const el = rg.startContainer.parentElement && rg.startContainer.parentElement.closest('[data-word-index]');
                 const el2 = rg.endContainer.parentElement && rg.endContainer.parentElement.closest('[data-word-index]');
-                if (!el || el !== el2) { sel.removeAllRanges(); return; }   // 只處理在同一個字之內的選取
+                if (!el || el !== el2) { sel.removeAllRanges(); return; }
                 const off = (node, o) => {
                     const r = document.createRange();
                     r.setStart(el, 0); r.setEnd(node, o);
@@ -648,7 +592,7 @@
                 if (en <= st || (st === 0 && en >= raw.length) || highlightedIndices.has(idx)) return;
                 const list = partials[idx] || (partials[idx] = []);
                 let ns = st, ne = en;
-                for (let k = list.length - 1; k >= 0; k--) {        // 與既有小段重疊就合併
+                for (let k = list.length - 1; k >= 0; k--) {
                     if (list[k][0] <= ne && list[k][1] >= ns) { ns = Math.min(ns, list[k][0]); ne = Math.max(ne, list[k][1]); list.splice(k, 1); }
                 }
                 list.push([ns, ne]); list.sort((x, y) => x[0] - y[0]);
@@ -663,40 +607,36 @@
                 highlightCountTag.textContent = `已劃記 ${count} 字`;
             }
 
-            // 清除劃記與載入範例
-            clearHighlightBtn?.addEventListener('click', () => {
+            clearHighlightBtn.addEventListener('click', () => {
                 highlightedIndices.clear();
-                const words = transcriptEditor.querySelectorAll('.highlight-word');
-                words.forEach(w => w.className = 'normal-word');
                 clearPartials();
                 transcriptEditor.querySelectorAll('[data-word-index]').forEach(w => applyWordDisplay(w));
                 updateHighlightCount();
                 showToast('已清除所有劃記', 'info');
             });
 
-            loadSampleBtn?.addEventListener('click', () => {
+            loadSampleBtn.addEventListener('click', () => {
                 transcriptInput.value = DEFAULT_TRANSCRIPT;
                 highlightedIndices.clear(); clearSyllables();
                 renderTranscript(DEFAULT_TRANSCRIPT, highlightedIndices);
-                showToast('已載入半導體預設逐字稿', 'success');
+                showToast('已載入範例逐字稿', 'success');
             });
 
-            // 頁籤切換與音檔載入
-            tabDriveLink?.addEventListener('click', () => {
+            tabDriveLink.addEventListener('click', () => {
                 tabDriveLink.className = 'py-2 px-3 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex-1 text-center';
                 tabLocalFile.className = 'py-2 px-3 text-slate-500 hover:text-slate-700 focus:outline-none flex-1 text-center';
                 driveLinkSection.classList.remove('hidden');
                 localFileSection.classList.add('hidden');
             });
 
-            tabLocalFile?.addEventListener('click', () => {
+            tabLocalFile.addEventListener('click', () => {
                 tabLocalFile.className = 'py-2 px-3 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex-1 text-center';
                 tabDriveLink.className = 'py-2 px-3 text-slate-500 hover:text-slate-700 focus:outline-none flex-1 text-center';
                 localFileSection.classList.remove('hidden');
                 driveLinkSection.classList.add('hidden');
             });
 
-            audioUpload?.addEventListener('change', (e) => {
+            audioUpload.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     fileNameDisplay.textContent = file.name;
@@ -706,7 +646,7 @@
                 }
             });
 
-            driveUrlInput?.addEventListener('change', () => {
+            driveUrlInput.addEventListener('change', () => {
                 const url = driveUrlInput.value.trim();
                 if (url) {
                     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
@@ -723,21 +663,17 @@
                 }
             });
 
-            // 快捷評語標籤
             document.querySelectorAll('.preset-tag').forEach(tag => {
                 tag.addEventListener('click', () => {
                     const tagText = tag.textContent.replace('+', '').trim();
-                    if (teacherComments) {
-                        teacherComments.innerText += ' ' + tagText;
-                    }
+                    teacherComments.innerText += ' ' + tagText;
                 });
             });
 
-            // --- 核心功能 4：匯出 PDF（使用瀏覽器原生列印，文字為向量、可選取、排版穩定） ---
             exportPdfBtn.addEventListener('click', () => {
                 const title = assignmentTitleInput.value.trim() || '錄音作業批改報告';
                 const oldTitle = document.title;
-                document.title = title; // 另存 PDF 時的預設檔名
+                document.title = title;
                 showToast('請在列印視窗的「目的地」選「另存為 PDF」', 'info');
                 setTimeout(() => {
                     window.print();
@@ -745,7 +681,6 @@
                 }, 400);
             });
 
-            // --- 音訊播放器控制邏輯 ---
             function formatTime(seconds) {
                 if (isNaN(seconds)) return '00:00';
                 const mins = Math.floor(seconds / 60);
@@ -800,28 +735,22 @@
                 });
             });
 
-            // --- 核心功能 2：AI 智慧評語生成 (基於老師手動劃記) ---
             analyzeBtn.addEventListener('click', async () => {
                 const highlightedElements = transcriptEditor.querySelectorAll('.highlight-word, .hl-part');
-                
                 if (isAnalyzing) return;
                 isAnalyzing = true;
-
-                // UI 載入狀態
                 analyzeBtnText.innerHTML = `<span class="loader-spin mr-2"></span>正在生成評語...`;
                 analyzeBtn.disabled = true;
 
                 try {
                     await generateAiTeacherSummary();
-
                     if (highlightedElements.length === 0) {
                         showToast('未劃記任何單字，已生成「發音良好」讚賞評語！', 'info');
                     } else {
                         showToast(`已針對您劃記的 ${highlightedElements.length} 個重點單字生成評語！`, 'success');
                     }
-
                 } catch (error) {
-                    console.error("生成評語失敗:", error);
+                    console.error('生成評語失敗:', error);
                     showToast('生成過程發生錯誤，請重試。', 'error');
                 } finally {
                     isAnalyzing = false;
@@ -830,22 +759,19 @@
                 }
             });
 
-            // --- 核心功能 3：呼叫 Gemini API 生成評語 ---
             async function generateAiTeacherSummary() {
                 const items = collectMarks();
                 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
                 if (items.length === 0) {
                     teacherComments.innerText = pick([
-                        "這次朗讀非常流利順暢，發音清楚、節奏掌握得很好，沒有需要特別修正的地方，請繼續保持！",
-                        "整體唸得很棒，咬字清楚又有自信，沒有發現明顯需要加強的字，太棒了！"]);
+                        '這次朗讀非常流利順暢，發音清楚、節奏掌握得很好，沒有需要特別修正的地方，請繼續保持！',
+                        '整體唸得很棒，咬字清楚又有自信，沒有發現明顯需要加強的字，太棒了！'
+                    ]);
                     return;
                 }
-                const apiKey = "";   // 之後接 AI 時再填；目前使用下方依劃記內容產生的評語
-                if (apiKey) { /* 預留：之後串接 AI API */ }
                 teacherComments.innerText = buildComment(items, pick);
             }
 
-            // 蒐集所有劃記（整個字或局部）
             function collectMarks() {
                 const items = [];
                 transcriptEditor.querySelectorAll('[data-word-index]').forEach(el => {
@@ -887,45 +813,43 @@
             }
 
             const COMMENT_BANK = {
-                th:  { order: 1, practice: ['think', 'thank', 'three', 'mouth', 'bath', 'this', 'that', 'brother'], t: [
+                th: { order: 1, practice: ['think', 'thank', 'three', 'mouth', 'bath', 'this', 'that', 'brother'], t: [
                     (e, p) => `${e}的 th 要把舌尖輕放在上下牙齒中間再送氣，不要唸成 s 或 d。可以多練習：${p}。`,
                     (e, p) => `遇到 th 的字（${e}），舌尖要微微碰到牙齒，這個音需要多練習幾次，例如 ${p}。`,
                     (e, p) => `th 的發音（${e}）還不太穩，建議對著鏡子看舌尖位置，並用 ${p} 練習。`] },
-                ed:  { order: 2, practice: ['walked', 'played', 'wanted', 'helped', 'needed'], t: [
+                ed: { order: 2, practice: ['walked', 'played', 'wanted', 'helped', 'needed'], t: [
                     (e) => `${e}字尾的 -ed 要清楚唸出來，記得有 /t/、/d/、/ɪd/ 三種唸法。`,
                     (e) => `${e}的 -ed 結尾容易被省略，朗讀時要把尾音唸完整。`] },
-                es:  { order: 3, practice: ['books', 'dogs', 'boxes', 'wafers'], t: [
+                es: { order: 3, practice: ['books', 'dogs', 'boxes', 'cats'], t: [
                     (e) => `${e}字尾的 -s／-es 要輕輕唸出來，不要吞掉。`,
                     (e) => `注意${e}的尾音 s，複數與第三人稱單數的字尾都要發音。`] },
                 ing: { order: 4, practice: ['running', 'singing', 'reading'], t: [
                     (e) => `${e}的 -ing，最後的 ng 要發鼻音，不要唸成 -in 或 -ink。`] },
-                tion:{ order: 5, practice: ['station', 'question', 'information', 'action'], t: [
+                tion: { order: 5, practice: ['station', 'question', 'information', 'action'], t: [
                     (e, p) => `${e}的 -tion 唸成 /ʃən/，整組音一起練習會比較順，例如 ${p}。`] },
-                stress:{ order: 6, practice: [], t: [
+                stress: { order: 6, practice: [], t: [
                     (e) => `${e}是多音節字，要注意重音落在哪一個音節，重音的音節唸得又重又長，聽起來會更自然。`,
                     (e) => `${e}這類長單字可以先分音節慢慢唸，再抓準重音位置，最後加快速度。`] },
-                rl:  { order: 7, practice: ['red', 'light', 'right', 'long', 'rice', 'lice'], t: [
+                rl: { order: 7, practice: ['red', 'light', 'right', 'long', 'rice', 'lice'], t: [
                     (e, p) => `${e}的 r 和 l 要分清楚：r 的舌頭不碰上顎，l 的舌尖要頂住上顎。可以練習：${p}。`] },
-                vowel:{ order: 8, practice: ['ship / sheep', 'bit / beat', 'full / fool'], t: [
+                vowel: { order: 8, practice: ['ship / sheep', 'bit / beat', 'full / fool'], t: [
                     (e) => `${e}的母音長短要注意，建議聽示範音檔後再跟讀比較。`] },
-                endcons:{ order: 9, practice: [], t: [
+                endcons: { order: 9, practice: [], t: [
                     (e) => `${e}字尾的子音（如 t、d、k）要輕輕收尾，不要省略。`] },
-                other:{ order: 10, practice: [], t: [
+                other: { order: 10, practice: [], t: [
                     (e) => `${e}的發音可以再聽一次示範音檔，放慢速度跟著唸。`,
                     (e) => `${e}這幾個字請再多聽幾次、慢慢跟讀。`] }
             };
 
             function buildComment(items, pick) {
                 const groups = {};
-                items.forEach(it => { (groups[classify(it)] = groups[classify(it)] || []).push(it); });
+                items.forEach(it => { const key = classify(it); (groups[key] = groups[key] || []).push(it); });
                 const marked = new Set(items.map(i => i.word));
                 const label = it => `「${it.seg ? it.word + '（' + it.seg + '）' : it.word}」`;
                 const keys = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length || COMMENT_BANK[a].order - COMMENT_BANK[b].order);
                 const main = keys.filter(k => k !== 'other').slice(0, 3);
                 const lines = [];
-                lines.push(pick(items.length <= 3
-                    ? ["這次朗讀整體表現不錯！", "唸得很用心，大部分的字都很清楚！", "朗讀流暢，有看到你的努力！"]
-                    : ["這次朗讀有幾個地方可以再加強。", "整體有認真唸完，以下幾點可以再練習。", "朗讀完成度不錯，以下是需要注意的地方。"]));
+                lines.push(pick(items.length <= 3 ? ['這次朗讀整體表現不錯！', '唸得很用心，大部分的字都很清楚！', '朗讀流暢，有看到你的努力！'] : ['這次朗讀有幾個地方可以再加強。', '整體有認真唸完，以下幾點可以再練習。', '朗讀完成度不錯，以下是需要注意的地方。']));
                 main.forEach(k => {
                     const bank = COMMENT_BANK[k];
                     const ex = [...new Set(groups[k].map(label))].slice(0, 3).join('、');
@@ -938,13 +862,29 @@
                     const ex = [...new Set(rest.map(label))].slice(0, 4).join('、');
                     lines.push(pick(COMMENT_BANK.other.t)(ex));
                 }
-                lines.push(pick(["多聽示範音檔、跟著唸幾次，會越來越好，加油！", "下次錄音前先慢慢唸過一遍，一定會更棒！", "繼續保持，期待下次的表現！", "每天花幾分鐘跟讀，進步會很快喔！"]));
+                lines.push(pick(['多聽示範音檔、跟著唸幾次，會越來越好，加油！', '下次錄音前先慢慢唸過一遍，一定會更棒！', '繼續保持，期待下次的表現！', '每天花幾分鐘跟讀，進步會很快喔！']));
                 return lines.join('');
             }
 
-            // 初始化：載入範例文本（預設乾淨無螢光筆）
-            transcriptInput.value = DEFAULT_TRANSCRIPT;
-            renderTranscript(DEFAULT_TRANSCRIPT, highlightedIndices);
+            document.getElementById('clearAllBtn').addEventListener('click', () => {
+                if (!confirm('要清空這份作業的所有資料嗎？\n（逐字稿、音檔、劃記、音節、評語、作業標題）')) return;
+                transcriptInput.value = '';
+                highlightedIndices.clear(); clearSyllables();
+                renderTranscript('', highlightedIndices); updateHighlightCount();
+                teacherComments.innerHTML = '';
+                assignmentTitleInput.value = ''; displayTitle.textContent = '作業標題';
+                try { audioPlayer.pause(); } catch (err) {}
+                audioPlayer.removeAttribute('src'); audioPlayer.load();
+                audioUpload.value = '';
+                driveUrlInput.value = '';
+                fileNameDisplay.textContent = '尚未選擇音檔';
+                driveIframe.removeAttribute('src'); driveEmbedContainer.classList.add('hidden');
+                showToast('已清空本份作業資料', 'success');
+            });
+
+            transcriptInput.value = '';
+            renderTranscript('', highlightedIndices);
+            updateHighlightCount();
         });
     </script>
 
